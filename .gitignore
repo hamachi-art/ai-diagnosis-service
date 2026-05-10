@@ -1,0 +1,33 @@
+## General
+.DS_Store
+
+## Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+## Tooling cache/bundles (Cursor/SDK, vendored installers, etc.)
+.tools/
+
+## Next.js
+.next/
+out/
+build/
+coverage/
+
+## Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+## Env (avoid committing secrets by default)
+.env*
+
+## Vercel
+.vercel
+
+## TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
