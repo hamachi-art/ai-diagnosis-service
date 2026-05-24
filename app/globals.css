@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html,
@@ -11,3 +11,43 @@ body {
   margin: 0;
 }
 
+/* 星々 — 複数レイヤーで奥行き感 */
+.cosmic-stars {
+  background-repeat: repeat;
+}
+
+.cosmic-stars--dense {
+  background-image:
+    radial-gradient(1px 1px at 25px 35px, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1px 1px at 80px 120px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 150px 60px, rgba(200, 220, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 220px 180px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 310px 90px, rgba(255, 230, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 400px 250px, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1px 1px at 480px 40px, rgba(180, 220, 255, 0.75), transparent),
+    radial-gradient(1px 1px at 560px 160px, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 640px 280px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 720px 70px, rgba(255, 200, 255, 0.65), transparent);
+  background-size: 750px 300px;
+  animation: cosmic-twinkle 8s ease-in-out infinite alternate;
+}
+
+.cosmic-stars--sparse {
+  background-image:
+    radial-gradient(1.5px 1.5px at 50px 80px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 180px 200px, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(2px 2px at 320px 140px, rgba(200, 180, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 450px 30px, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1.5px 1.5px at 600px 220px, rgba(180, 255, 255, 0.45), transparent);
+  background-size: 650px 250px;
+  animation: cosmic-twinkle 12s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes cosmic-twinkle {
+  0% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+  }
+}

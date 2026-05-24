@@ -1,14 +1,27 @@
 import { createTheme } from '@mui/material/styles';
 
+import { cosmicColors } from './styles/cosmic';
+
 export const theme = createTheme({
   palette: {
-    mode: 'light',
+    mode: 'dark',
     primary: {
-      main: '#2563eb'
+      main: '#a78bfa',
+      light: '#c4b5fd',
+      dark: '#7c3aed'
+    },
+    secondary: {
+      main: '#22d3ee'
+    },
+    text: {
+      primary: cosmicColors.textPrimary,
+      secondary: cosmicColors.textSecondary
     },
     background: {
-      default: '#ffffff'
-    }
+      default: cosmicColors.spaceDeep,
+      paper: cosmicColors.glass
+    },
+    divider: cosmicColors.border
   },
   shape: {
     borderRadius: 14
@@ -34,7 +47,13 @@ export const theme = createTheme({
           fontWeight: 700
         }
       }
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none'
+        }
+      }
     }
   }
 });
-

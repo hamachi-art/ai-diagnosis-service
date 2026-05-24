@@ -2,7 +2,16 @@ import { Box, Container, Typography } from '@mui/material';
 
 export function SiteFooter() {
   return (
-    <Box component="footer" sx={{ py: 4, borderTop: '1px solid', borderColor: 'divider' }}>
+    <Box
+      component="footer"
+      sx={{
+        py: 4,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'rgba(3, 0, 20, 0.6)',
+        backdropFilter: 'blur(8px)'
+      }}
+    >
       <Container maxWidth="lg">
         <Box
           sx={{
@@ -24,4 +33,3 @@ export function SiteFooter() {
     </Box>
   );
 }
-

@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { Alert, Button, Snackbar } from '@mui/material';
 
+import { ctaGradient, ctaGradientHover } from '../styles/cosmic';
+
 type Props = {
   label?: string;
   size?: 'small' | 'medium' | 'large';
@@ -21,11 +23,12 @@ export function CtaButton({ label = '無料で診断を始める', size = 'large
           px: 4,
           py: 1.4,
           borderRadius: 999,
-          background: 'linear-gradient(90deg, #2563eb 0%, #06b6d4 100%)',
-          boxShadow: '0 10px 25px rgba(37, 99, 235, 0.25)',
+          color: '#fff',
+          background: ctaGradient,
+          boxShadow: '0 10px 30px rgba(124, 58, 237, 0.4), 0 0 40px rgba(34, 211, 238, 0.15)',
           '&:hover': {
-            background: 'linear-gradient(90deg, #1d4ed8 0%, #0891b2 100%)',
-            boxShadow: '0 14px 30px rgba(37, 99, 235, 0.32)'
+            background: ctaGradientHover,
+            boxShadow: '0 14px 36px rgba(124, 58, 237, 0.5), 0 0 50px rgba(236, 72, 153, 0.2)'
           }
         }}
       >
@@ -44,4 +47,3 @@ export function CtaButton({ label = '無料で診断を始める', size = 'large
     </>
   );
 }
-
