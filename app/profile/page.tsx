@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { MemberLayout } from '@/app/components/MemberLayout';
 import { ProfileForm } from '@/app/components/ProfileForm';
-import { getUserProfile } from '@/lib/user';
+import { getDisplayImage, getUserProfile } from '@/lib/user';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -27,7 +27,7 @@ export default async function ProfilePage() {
     <MemberLayout
       title="プロフィール"
       userName={profile.name ?? session.user.name}
-      userImage={profile.image ?? session.user.image}
+      userImage={getDisplayImage(profile) ?? session.user.image}
     >
       <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }} gutterBottom>
         プロフィール

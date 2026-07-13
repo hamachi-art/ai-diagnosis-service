@@ -1,6 +1,10 @@
 import { ObjectId } from 'mongodb';
 
 import clientPromise from '@/lib/mongodb';
+import type { UserProfile } from '@/lib/user-types';
+
+export type { UserProfile } from '@/lib/user-types';
+export { getDisplayImage } from '@/lib/user-types';
 
 function isMockMode(): boolean {
   return process.env.AUTH_MOCK_MODE === 'true';
@@ -10,16 +14,6 @@ declare global {
   // eslint-disable-next-line no-var
   var _mockUserProfiles: Map<string, UserProfile> | undefined;
 }
-
-export type UserProfile = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  image: string | null;
-  emailVerified: Date | null;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-};
 
 function getMockStore(): Map<string, UserProfile> {
   if (!global._mockUserProfiles) {
@@ -34,6 +28,7 @@ function mapUserDocument(doc: Record<string, unknown>): UserProfile {
     name: (doc.name as string | null | undefined) ?? null,
     email: (doc.email as string | null | undefined) ?? null,
     image: (doc.image as string | null | undefined) ?? null,
+    customImage: (doc.customImage as string | null | undefined) ?? null,
     emailVerified: (doc.emailVerified as Date | null | undefined) ?? null,
     createdAt: (doc.createdAt as Date | null | undefined) ?? null,
     updatedAt: (doc.updatedAt as Date | null | undefined) ?? null
@@ -65,7 +60,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 
 export async function updateUserProfile(
   userId: string,
-  data: { name: string }
+  data: { name?: string; customImage?: string | null }
 ): Promise<UserProfile | null> {
   const now = new Date();
 
@@ -75,9 +70,10 @@ export async function updateUserProfile(
 
     const next: UserProfile = {
       id: userId,
-      name: data.name,
+      name: data.name ?? prev?.name ?? null,
       email: prev?.email ?? null,
       image: prev?.image ?? null,
+      customImage: data.customImage !== undefined ? data.customImage : (prev?.customImage ?? null),
       emailVerified: prev?.emailVerified ?? null,
       createdAt: prev?.createdAt ?? now,
       updatedAt: now
@@ -86,6 +82,10 @@ export async function updateUserProfile(
     store.set(userId, next);
     return next;
   }
+
+  const $set: Record<string, unknown> = { updatedAt: now };
+  if (data.name !== undefined) $set.name = data.name;
+  if (data.customImage !== undefined) $set.customImage = data.customImage;
 
   try {
     const client = await clientPromise;
@@ -96,10 +96,7 @@ export async function updateUserProfile(
       .findOneAndUpdate(
         { _id: new ObjectId(userId) },
         {
-          $set: {
-            name: data.name,
-            updatedAt: now
-          },
+          $set,
           $setOnInsert: {
             createdAt: now
           }
@@ -115,6 +112,13 @@ export async function updateUserProfile(
   } catch {
     return null;
   }
+}
+
+export async function updateUserAvatar(
+  userId: string,
+  customImage: string
+): Promise<UserProfile | null> {
+  return updateUserProfile(userId, { customImage });
 }
 
 export async function ensureUserTimestamps(userId: string): Promise<void> {
@@ -155,6 +159,7 @@ export function seedMockUserProfile(input: {
     name: input.name ?? prev?.name ?? null,
     email: input.email ?? prev?.email ?? null,
     image: input.image ?? prev?.image ?? null,
+    customImage: prev?.customImage ?? null,
     emailVerified: prev?.emailVerified ?? null,
     createdAt: prev?.createdAt ?? now,
     updatedAt: now

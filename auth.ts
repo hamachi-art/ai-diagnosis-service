@@ -42,8 +42,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
       }
 
-      if (trigger === 'update' && session?.name) {
-        token.name = session.name as string;
+      if (trigger === 'update' && session) {
+        if (session.name) {
+          token.name = session.name as string;
+        }
+        if (session.image) {
+          token.picture = session.image as string;
+        }
       }
 
       if (user?.name) token.name = user.name;
