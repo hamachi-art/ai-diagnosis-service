@@ -40,6 +40,10 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     return getMockStore().get(userId) ?? null;
   }
 
+  if (!ObjectId.isValid(userId)) {
+    return null;
+  }
+
   try {
     const client = await clientPromise;
     const doc = await client
@@ -53,7 +57,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 
     return mapUserDocument(doc as Record<string, unknown>);
   } catch {
-    // Local UI確認のため、DB接続失敗などは「データなし」として扱う
+    // DB接続失敗などは「データなし」として扱う（ログイン自体は継続）
     return null;
   }
 }
@@ -81,6 +85,10 @@ export async function updateUserProfile(
 
     store.set(userId, next);
     return next;
+  }
+
+  if (!ObjectId.isValid(userId)) {
+    return null;
   }
 
   const $set: Record<string, unknown> = { updatedAt: now };
@@ -126,6 +134,10 @@ export async function ensureUserTimestamps(userId: string): Promise<void> {
     return;
   }
 
+  if (!ObjectId.isValid(userId)) {
+    return;
+  }
+
   try {
     const client = await clientPromise;
     const now = new Date();
@@ -138,7 +150,66 @@ export async function ensureUserTimestamps(userId: string): Promise<void> {
         { $set: { createdAt: now, updatedAt: now } }
       );
   } catch {
-    // Local UI確認中は失敗しても致命エラーにしない
+    // DB接続失敗などは致命エラーにしない（ログイン自体は継続）
+  }
+}
+
+/**
+ * Google ログイン時に users コレクションへ upsert し、MongoDB の userId を返す。
+ * MongoDB に繋がらない場合は null（呼び出し側でフォールバック ID を使う）。
+ */
+export async function upsertOAuthUser(input: {
+  email: string;
+  name?: string | null;
+  image?: string | null;
+  providerAccountId: string;
+}): Promise<string | null> {
+  if (isMockMode()) {
+    const id = `mock-${input.email}`;
+    seedMockUserProfile({
+      id,
+      name: input.name,
+      email: input.email,
+      image: input.image
+    });
+    return id;
+  }
+
+  try {
+    const client = await clientPromise;
+    const users = client.db().collection('users');
+    const now = new Date();
+
+    const existing = await users.findOne({ email: input.email });
+    if (existing) {
+      await users.updateOne(
+        { _id: existing._id },
+        {
+          $set: {
+            name: input.name ?? existing.name ?? null,
+            image: input.image ?? existing.image ?? null,
+            updatedAt: now
+          },
+          $setOnInsert: { createdAt: now }
+        }
+      );
+      return String(existing._id);
+    }
+
+    const insertResult = await users.insertOne({
+      name: input.name ?? null,
+      email: input.email,
+      image: input.image ?? null,
+      emailVerified: now,
+      createdAt: now,
+      updatedAt: now
+    });
+
+    return String(insertResult.insertedId);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[user] upsertOAuthUser failed (login continues):', message);
+    return null;
   }
 }
 

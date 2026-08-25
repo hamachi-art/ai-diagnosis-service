@@ -1,33 +1,64 @@
-import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import NextAuth from 'next-auth';
 
 import { authConfig } from '@/auth.config';
-import clientPromise from '@/lib/mongodb';
-import { ensureUserTimestamps, seedMockUserProfile } from '@/lib/user';
+import { ensureUserTimestamps, seedMockUserProfile, upsertOAuthUser } from '@/lib/user';
 
 const isMockMode = process.env.AUTH_MOCK_MODE === 'true';
 
+/**
+ * MongoDB Adapter は使わない。
+ * Adapter は MongoDB 接続失敗時に AdapterError → Configuration（Server error）になり、
+ * ログイン全体が止まるため、JWT セッション + ベストエフォートのユーザー保存に切り替える。
+ */
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  // 開発用モードでは MongoDB に繋がなくても動作確認できるようにする
-  adapter: isMockMode ? undefined : MongoDBAdapter(clientPromise),
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user, account, trigger, session }) {
-      // token.sub を常に埋めて、ミドルウェア/保護判定で落ちないようにする
-      const nextSub =
-        (user?.id ? String(user.id) : undefined) ??
-        (account?.providerAccountId ? String(account.providerAccountId) : undefined) ??
-        (typeof user?.email === 'string' ? user.email : undefined);
+      // 初回サインイン時: MongoDB にユーザーを保存できればその ID、失敗時はフォールバック
+      if (user && account) {
+        const email =
+          typeof user.email === 'string'
+            ? user.email
+            : typeof token.email === 'string'
+              ? token.email
+              : undefined;
 
-      if (nextSub) {
-        token.sub = nextSub;
+        if (email) {
+          const mongoId = await upsertOAuthUser({
+            email,
+            name: user.name,
+            image: user.image,
+            providerAccountId: String(account.providerAccountId ?? '')
+          });
+
+          if (mongoId) {
+            token.sub = mongoId;
+          } else {
+            token.sub =
+              (account.providerAccountId ? String(account.providerAccountId) : undefined) ??
+              (user.id ? String(user.id) : undefined) ??
+              email;
+          }
+        } else {
+          token.sub =
+            (user.id ? String(user.id) : undefined) ??
+            (account.providerAccountId ? String(account.providerAccountId) : undefined) ??
+            token.sub;
+        }
+      } else if (!token.sub) {
+        const nextSub =
+          (user?.id ? String(user.id) : undefined) ??
+          (account?.providerAccountId ? String(account.providerAccountId) : undefined) ??
+          (typeof user?.email === 'string' ? user.email : undefined);
+        if (nextSub) {
+          token.sub = nextSub;
+        }
       }
 
-      if (user?.id) {
-        // MongoDB が落ちていても UI 確認のために致命エラーにしない
+      if (token.sub) {
         try {
-          await ensureUserTimestamps(String(user.id));
+          await ensureUserTimestamps(String(token.sub));
         } catch {
           // ignore
         }
@@ -36,9 +67,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (isMockMode && token.sub) {
         seedMockUserProfile({
           id: String(token.sub),
-          name: user?.name,
-          email: user?.email,
-          image: user?.image
+          name: user?.name ?? (token.name as string | undefined),
+          email: user?.email ?? (token.email as string | undefined),
+          image: user?.image ?? (token.picture as string | undefined)
         });
       }
 
