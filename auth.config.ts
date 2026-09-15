@@ -54,7 +54,9 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const { pathname } = request.nextUrl;
       const isProtected =
-        pathname.startsWith('/dashboard') || pathname.startsWith('/profile');
+        pathname.startsWith('/dashboard') ||
+        pathname.startsWith('/profile') ||
+        pathname.startsWith('/diagnosis');
 
       if (isProtected && !isLoggedIn) {
         return false;

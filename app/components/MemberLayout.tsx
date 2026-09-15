@@ -47,6 +47,12 @@ export function MemberLayout({
             <Button component={Link} href="/dashboard" color="inherit">
               ダッシュボード
             </Button>
+            <Button component={Link} href="/diagnosis" color="inherit">
+              診断
+            </Button>
+            <Button component={Link} href="/diagnosis/history" color="inherit">
+              履歴
+            </Button>
             <Button component={Link} href="/profile" color="inherit">
               プロフィール
             </Button>

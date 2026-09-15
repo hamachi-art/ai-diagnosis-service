@@ -1,4 +1,5 @@
-import { Avatar, Card, CardContent, Stack, Typography } from '@mui/material';
+import { Avatar, Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { auth } from '@/auth';
@@ -41,8 +42,16 @@ export default async function DashboardPage() {
                 <Typography color="text.secondary">{session.user.email}</Typography>
               </Stack>
               <Typography>
-                こちらは会員専用のトップページです。プロフィールの確認・編集はナビゲーションからアクセスできます。
+                こちらは会員専用のトップページです。AIキャリア診断やプロフィールの確認・編集はナビゲーションからアクセスできます。
               </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Button component={Link} href="/diagnosis" variant="contained">
+                  キャリア診断をはじめる
+                </Button>
+                <Button component={Link} href="/diagnosis/history" variant="outlined">
+                  診断履歴を見る
+                </Button>
+              </Stack>
               <SignOutButton />
             </Stack>
           </CardContent>
